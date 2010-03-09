@@ -4,23 +4,18 @@
 
 Creates a post from an API Key-authenticated request.  Can accept all standard post fields (`post_title` and `post_content` are the only required fields), as well as postmeta information.
 
-## Overview and use
+## Overview and Use
 
 This plugin functions as a flexible way whereby posts or pages can be created and/or updated by posting data (via HTTP POST) to an endpoint (main blog's url).  There is basic authentication, via an API Key (currently statically set) and a specific `$_POST` variable that it listens for, before any actions are taken.
-
-Functionality developed specifically for Facebook is implemented by the "CF FBWP - Post API Filters" plugin.  The specific functionalities of this plugin are addressed later.
 
 ### Requirements
 
 - WordPress Plugins Activated 
 	- `CF Post API`
-	- `CF FBWP - Post API Filters`_*_
 - HTTP Client capable of sending a POST request to a URL endpoint
 - POST data
 	- `cfapi_action` = `create_post`
 	- post information (see **PHP data architecture** for required fields)
-
-_*_ See section on the `CF FBWP - Post API Filters` plugin to see if this plugin is required
 
 ### Creating a post
 
@@ -29,7 +24,7 @@ Each POST request to the endpoint is for the creating or updating of a single Wo
 1. Create your post in whichever format is determined.
 1. Use an intermediary program to take the post information that was created, and prepare your data to be posted to the blog's url.  
 	- Examples below show how the data is expected to be received at the endpoint.  See: **PHP data architecture**, and **cURL data params** sections for examples of what post information is required, and which is optional. 
-1. Ensure the `CF Post API`, and `CF FBWP - Post API Filters` plugins are activated.
+1. Ensure the `CF Post API` plugin is activated.
 1. Using an HTTP client, anything from cURL to JavaScript that can send POST data to send information to the endpoint, send the request to the endpoint.
 
 ### Updating a post
@@ -37,21 +32,6 @@ Each POST request to the endpoint is for the creating or updating of a single Wo
 Posts are updated in the same manner as creating a post.  The API checks to see if a post exists by title, and if it does the post information is used to overwrite the existing post content.  
 
 **Note:** Postmeta values are non-removable with the current version of the API.  You can add to, update, or empty their values, but cannot remove the postmeta record once it's been created.
-
-### "CF FBWP - Post API Filters" Plugin
-
-This plugin sets a few different variables, and helps to create a page hierarchy.  Depending on the setup of the new, incoming data, this plugin may no longer be necessary, and the variables set below could instead be passed in the original POST request.
-
-**Variables Set**
-
-	$data['post_type'] = 'page';  // Forcing incomming posts to the type "page"
-	$data['post_status'] = 'publish';  // Setting status to "publish"
-	$data['post_author'] = 1;  // Setting "admin" as the author
-	$data['post_title'] = str_replace('Facebook Developers | ', '', $data['post_title']);  // Removing "Facebook Developers | " from title (utilized for migration of posts into WordPress)
-
-**Page Hierarchy**
-
-When the JavaScript API documentation site was crawled, the title of the post came into the API in a hierarchical manner (e.g., FB.ApiClient.connect_getUnconnectedFriendsCount).  Crowd Favorite implemented custom functionality to parse that title and, if necessary, create stub pages for parents of that page.  Once the current page was created, with the title set to just the final portion of the original title instead of the entire hierarchy, this plugin assigns the proper parent to the post inside of WordPress; so that proper hierarchy was maintained.
 
 ---
 
