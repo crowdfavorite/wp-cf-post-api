@@ -1,0 +1,7 @@
+# CF Post API Changelog
+
+## 1.0
+- Replaced cf-json directory with an external referencing CF's code library
+
+## 0.9
+- Initial release
