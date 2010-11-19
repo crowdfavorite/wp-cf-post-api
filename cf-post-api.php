@@ -102,21 +102,14 @@ function cfapi_process($passed_data) {
 			$result = true;
 
 			// Now check for postmeta
-			if (isset($passed_data['postmeta'])) {
-				$postmeta = $passed_data['postmeta'];
-				if (is_array($postmeta) && !empty($postmeta)) {
-					foreach ($postmeta as $meta) {
-						$valid = cfapi_is_data_valid($meta, 'meta');
-						if ($valid['valid']) {
-							$postmeta_result = cfapi_do_insert_postmeta($post_id, $meta);
-						} 
-						else {
-							$errors[] = 'Postmeta is invalid. Passed data: ' . "\n" . print_r($meta, true);
-						}
+			if (!empty($passed_data['post_meta'])) {
+				foreach($passed_data['post_meta'] as $name => $value) {
+					if (!empty($name)) {
+						$postmeta_result = cfapi_do_insert_postmeta($post_id, $name, $value);
 					}
-				}
-				else {
-					$errors[] = 'Postmeta key was set, but no meta arrays were passed';
+					else {
+						$errors[] = 'Invalid Post Meta: Passed Data: '."\n".$name.'::'.$value;
+					}
 				}
 			}
 			
@@ -134,7 +127,8 @@ function cfapi_process($passed_data) {
 
 	$final_result = array(
 		'result' => $result, 
-		'post_id' => $post_id, 
+		'post_id' => $post_id,
+		'post_meta' => $postmeta_result,
 		'errors' => $errors
 	);
 	
@@ -186,7 +180,7 @@ function cfapi_do_insert_post($data = null) {
 	
 	// Strip slashes from incomming data
 	foreach ($data as $key => $item) {
-		$post_data[$key] = stripslashes($item);
+		$post_data[$key] = stripslashes_deep($item);
 	}
 
 	// Filter our post data here
@@ -199,9 +193,8 @@ function cfapi_do_insert_post($data = null) {
 	return $result;
 }
 
-function cfapi_do_insert_postmeta($post_id = null, $meta = array()) {
-	if (is_null($post_id) || !is_array($meta) || empty($meta)) { return false; }
-	
+function cfapi_do_insert_postmeta($post_id = null, $name, $value) {
+	if (is_null($post_id) || empty($name)) { return false; }
 	// Make sure we have an int
 	$post_id = (int) $post_id;
 	
@@ -209,19 +202,16 @@ function cfapi_do_insert_postmeta($post_id = null, $meta = array()) {
 	if ($post_id == 0) { return false; }
 	
 	// Get rid of slashes
-	foreach ($meta as $key => $value) {
-		$meta[$key] = stripslashes($value);
-	}
+	$value = stripslashes_deep($value);
 
-	$defaults = array(
-		'autoload' => true
-	);
-	$meta = apply_filters('cfapi_insert_postmeta', array_merge($defaults, $meta), $post_id);
+	// Set default autoload
+	$autoload = true;
+	$meta = apply_filters('cfapi_insert_postmeta', compact('name', 'value', 'autoload'), $post_id);
 	
 	// Return whatever wordpress gives us
-	if (!add_post_meta($post_id, $meta['key'], $meta['value'], $meta['autoload'])) {
+	if (!add_post_meta($post_id, $meta['name'], $meta['value'], $meta['autoload'])) {
 		// Try updating if our add failed
-		return update_post_meta($post_id, $meta['key'], $meta['value']);
+		return update_post_meta($post_id, $meta['name'], $meta['value']);
 	}
 	// We had a successful post_meta addition
 	return true;
