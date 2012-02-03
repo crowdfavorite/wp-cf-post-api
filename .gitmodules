@@ -1,0 +1,3 @@
+[submodule "cf-json"]
+	path = cf-json
+	url = git@git.crowdfave.org:wp-plugin/cf-json.git
